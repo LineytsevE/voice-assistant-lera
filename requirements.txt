@@ -1,6 +1,6 @@
 antlr4-python3-runtime==4.9.3
-certifi==2025.4.26
-cffi== 1.15.1
+certifi==2026.2.25
+cffi==2.0.0
 charset-normalizer==3.4.7
 colorama==0.4.6
 cryptography==46.0.7
