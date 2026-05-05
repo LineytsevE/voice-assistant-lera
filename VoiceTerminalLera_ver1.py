@@ -24,7 +24,7 @@ try:
 
     print("silero tts...")
     device = torch.device("cuda")
-    torch.set_num_threads(4)
+    torch.set_num_threads(2)
     tts_model, _ = torch.hub.load(repo_or_dir='snakers4/silero-models',
                                   model='silero_tts', language='ru', speaker='v4_ru')
     tts_model.to(device)
