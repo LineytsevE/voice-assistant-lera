@@ -9,33 +9,25 @@ import requests
 import feedparser
 import re
 import sounddevice as sd
-import numpy as np
 from num2words import num2words
 from vosk import Model, KaldiRecognizer
-import io
-import wave
+import soundfile as sf
+import subprocess
 
 # ====================== НАСТРОЙКИ ======================
-PIPER_MODEL_PATH = r"synthModel/mari.onnx"
-PIPER_CONFIG_PATH = r"synthModel/mari.onnx.json"
+PIPER_MODEL = "synthModel/mari.onnx"
+PIPER_CONFIG = "synthModel/mari.onnx.json"
 
 API_WEATHER_KEY = "a16151d6d074f7a37a032f50f98a760c"
 CITY = "Novosibirsk"
 NEWS_RSS_URL = "https://lenta.ru/rss/news"
 
 # ====================== ИНИЦИАЛИЗАЦИЯ ======================
-print("Инициализация Vosk...")
+print("Загрузка Vosk...")
 vosk_model = Model("model")
 rec = KaldiRecognizer(vosk_model, 16000)
 
-print("Загрузка модели Piper TTS...")
-try:
-    from piper.voice import PiperVoice
-    voice = PiperVoice.load(PIPER_MODEL_PATH, config_path=PIPER_CONFIG_PATH)
-    print("Piper TTS успешно загружен!")
-except Exception as e:
-    print(f"Ошибка загрузки Piper: {e}")
-    sys.exit(1)
+print("Piper CLI готов")
 
 # ====================== HARDWARE ======================
 class Hardware:
@@ -118,12 +110,12 @@ class LeraBrain:
 
     def words_to_numbers(self, text):
         num_dict = {
-            'ноль':0,'один':1,'одну':1,'одна':1,'два':2,'две':2,'три':3,'четыре':4,
-            'пять':5,'шесть':6,'семь':7,'восемь':8,'девять':9,'десять':10,
-            'одиннадцать':11,'двенадцать':12,'тринадцать':13,'четырнадцать':14,
-            'пятнадцать':15,'шестнадцать':16,'семнадцать':17,'восемнадцать':18,
-            'девятнадцать':19,'двадцать':20,'тридцать':30,'сорок':40,
-            'пятьдесят':50,'шестьдесят':60
+            'ноль': 0, 'один': 1, 'одну': 1, 'одна': 1, 'два': 2, 'две': 2, 'три': 3, 'четыре': 4,
+            'пять': 5, 'шесть': 6, 'семь': 7, 'восемь': 8, 'девять': 9, 'десять': 10,
+            'одиннадцать': 11, 'двенадцать': 12, 'тринадцать': 13, 'четырнадцать': 14,
+            'пятнадцать': 15, 'шестнадцать': 16, 'семнадцать': 17, 'восемнадцать': 18,
+            'девятнадцать': 19, 'двадцать': 20, 'тридцать': 30, 'сорок': 40,
+            'пятьдесят': 50, 'шестьдесят': 60
         }
         words = text.split()
         nums = []
@@ -155,7 +147,7 @@ class LeraBrain:
         t = threading.Timer(minutes * 60, self._timer_end, [minutes])
         self.timers[minutes] = t
         t.start()
-        return f"Таймер на {minutes} минут запущен."
+        return f"Таймер на {minutes} {self.declension(minutes, 'минуту', 'минуты', 'минут')} запущен."
 
     def _timer_end(self, minutes):
         self.tts_queue.put(f"Таймер на {minutes} минут завершён!")
@@ -169,7 +161,14 @@ class LeraBrain:
                 self.timers[m].cancel()
                 del self.timers[m]
                 return f"Таймер на {m} минут отменён."
-        return "Таймер не найден."
+            return f"Таймер на {m} минут не найден."
+        if len(self.timers) == 1:
+            m, t = self.timers.popitem()
+            t.cancel()
+            return f"Таймер на {m} минут отменён."
+        elif len(self.timers) > 1:
+            return "У вас несколько таймеров. Уточните время."
+        return "Активных таймеров нет."
 
     def set_alarm(self, time_str):
         match = re.search(r'(\d{1,2}):?(\d{2})?', time_str)
@@ -205,15 +204,15 @@ class LeraBrain:
 
         self.listening_mode = False
 
-        if "будильник" in text and any(w in text for w in ["выключи", "отмени", "убери"]):
+        if "будильник" in text and any(w in text for w in ["выключи", "отмени", "убери", "стоп"]):
             return self.cancel_alarms()
 
-        if "таймер" in text and any(w in text for w in ["выключи", "отмени", "убери"]):
+        if "таймер" in text and any(w in text for w in ["выключи", "отмени", "убери", "стоп"]):
             return self.cancel_timer(text)
 
         if "погода" in text: return self.get_weather()
         if "новости" in text: return self.get_news()
-        if "время" in text or "час" in text: return self.get_time()
+        if "время" in text or "час" in text or "времени" in text: return self.get_time()
 
         if "таймер" in text:
             nums = self.words_to_numbers(text)
@@ -233,7 +232,7 @@ class LeraBrain:
         return "Не поняла команду."
 
 
-# ====================== СИНТЕЗ РЕЧИ ======================
+# ====================== СИНТЕЗ ======================
 def synth_and_say(text):
     if not text:
         return
@@ -244,18 +243,22 @@ def synth_and_say(text):
     print(f"Лера говорит: {text}")
 
     try:
-        byte_io = io.BytesIO()
-        with wave.open(byte_io, "wb") as wav_file:
-            voice.synthesize_wav(text, wav_file)
+        subprocess.run([
+            "piper",
+            "--model", PIPER_MODEL,
+            "--config", PIPER_CONFIG,
+            "--length_scale", "1.1",
+            "--output_file", "temp.wav"
+        ], input=text, text=True, capture_output=True, encoding="utf-8", check=True)
 
-        wav_bytes = byte_io.getvalue()
-        audio_np = np.frombuffer(wav_bytes[44:], dtype=np.int16)
+        data, sr = sf.read("temp.wav")
+        sd.play(data, sr)
+        sd.wait()
 
-        if len(audio_np) > 0:
-            sd.play(audio_np, samplerate=voice.config.sample_rate)
-            sd.wait()
+        if os.path.exists("temp.wav"):
+            os.remove("temp.wav")
     except Exception as e:
-        print(f"Ошибка синтеза: {e}")
+        print(f"Ошибка Piper: {e}")
 
 
 # ====================== ЗАПУСК ======================
