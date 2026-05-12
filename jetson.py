@@ -233,32 +233,88 @@ class LeraBrain:
 
 
 # ====================== СИНТЕЗ ======================
-def synth_and_say(text):
-    if not text:
-        return
-
-    text = re.sub(r'\d+', lambda m: num2words(int(m.group()), lang='ru'), text)
-    text = text.replace("-", " минус ")
-
-    print(f"Лера говорит: {text}")
-
+def synth_and_say(
+    text: str,
+    model_path: str,
+    config_path: str = None,
+    speaker_id: int = 0,
+    length_scale: float = 1.0,
+    noise_scale: float = 0.667,
+    noise_w: float = 0.8,
+) -> str:
+    """
+    Synthesize speech using Piper TTS.
+    
+    Args:
+        text: Text to synthesize
+        model_path: Path to the .onnx model file
+        config_path: Path to the .json config file (optional, will auto-detect)
+        speaker_id: Speaker ID for multi-speaker models
+        length_scale: Speed of speech (1.0 = normal, <1.0 = faster, >1.0 = slower)
+        noise_scale: Variability in speech
+        noise_w: Phoneme width variation
+    
+    Returns:
+        Path to the generated WAV file
+    """
+    # Auto-detect config path if not provided
+    if config_path is None:
+        config_path = model_path.replace('.onnx', '.onnx.json')
+    
+    # Create output file
+    fd, out_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    
+    # Piper directory with all dependencies (derive from project root)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    piper_dir = os.path.join(project_root, "piper")
+    piper_bin = os.path.join(piper_dir, "piper")
+    
+    # Build piper command
+    cmd = [
+        piper_bin,
+        "--model", model_path,
+        "--config", config_path,
+        "--output_file", out_path,
+    ]
+    
+    # Add optional parameters
+    if speaker_id > 0:
+        cmd.extend(["--speaker", str(speaker_id)])
+    if length_scale != 1.0:
+        cmd.extend(["--length_scale", str(length_scale)])
+    if noise_scale != 0.667:
+        cmd.extend(["--noise_scale", str(noise_scale)])
+    if noise_w != 0.8:
+        cmd.extend(["--noise_w", str(noise_w)])
+    
+    # Run piper with text input
+    # Set environment to use bundled libraries
+    env = os.environ.copy()
+    env['LD_LIBRARY_PATH'] = f"{piper_dir}:{env.get('LD_LIBRARY_PATH', '')}"
+    
     try:
-        subprocess.run([
-            "piper",
-            "--model", PIPER_MODEL,
-            "--config", PIPER_CONFIG,
-            "--length_scale", "1.1",
-            "--output_file", "temp.wav"
-        ], input=text, text=True, capture_output=True, encoding="utf-8", check=True)
-
-        data, sr = sf.read("temp.wav")
-        sd.play(data, sr)
-        sd.wait()
-
-        if os.path.exists("temp.wav"):
-            os.remove("temp.wav")
+        process = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=piper_dir,
+            env=env
+        )
+        stdout, stderr = process.communicate(input=text)
+        
+        if process.returncode != 0:
+            raise RuntimeError(f"Piper TTS failed: {stderr}")
+        
+        return out_path
+    
     except Exception as e:
-        print(f"Ошибка Piper: {e}")
+        # Clean up on error
+        if os.path.exists(out_path):
+            os.remove(out_path)
+        raise RuntimeError(f"Error running Piper TTS: {str(e)}")
 
 
 # ====================== ЗАПУСК ======================
