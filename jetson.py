@@ -235,8 +235,8 @@ class LeraBrain:
 # ====================== СИНТЕЗ ======================
 def synth_and_say(
     text: str,
-    model_path: synthModel/mari.onnx,
-    config_path: synthModel/mari.onnx.json,
+    model_path: PIPER_MODEL,
+    config_path: PIPER_CONFIG,
     speaker_id: int = 0,
     length_scale: float = 1.0,
     noise_scale: float = 0.667,
