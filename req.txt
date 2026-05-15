@@ -1,0 +1,16 @@
+certifi==2025.4.26
+cffi==1.15.1
+charset-normalizer==2.0.12
+idna==3.10
+importlib-resources==5.4.0
+numpy==1.19.5
+pkg_resources==0.0.0
+pycparser==2.21
+requests==2.27.1
+sounddevice==0.4.4
+srt==3.5.3
+tqdm==4.64.1
+urllib3==1.26.20
+vosk==0.3.45
+websockets==9.1
+zipp==3.6.0
