@@ -17,44 +17,13 @@ import subprocess
 
 PIPER_MODEL = "synthModel/mari.onnx"
 PIPER_CONFIG = "synthModel/mari.onnx.json"
-
 API_WEATHER_KEY = "a16151d6d074f7a37a032f50f98a760c"
 CITY = "Novosibirsk"
 NEWS_RSS_URL = "https://lenta.ru/rss/news"
-
 print("Загрузка Vosk...")
 vosk_model = Model("model")
 rec = KaldiRecognizer(vosk_model, 16000)
-
 print("Piper CLI готов")
-
-class Hardware:
-    def __init__(self):
-        self.LED_R, self.LED_G, self.LED_B = 11, 13, 15
-        self.RELAY_LIGHT = 16
-        self.HAS_GPIO = False
-        try:
-            import Jetson.GPIO as GPIO
-            GPIO.setmode(GPIO.BOARD)
-            GPIO.setup([self.LED_R, self.LED_G, self.LED_B, self.RELAY_LIGHT], GPIO.OUT, initial=GPIO.LOW)
-            self.GPIO = GPIO
-            self.HAS_GPIO = True
-            print("Jetson.GPIO инициализирован")
-        except:
-            print("Jetson.GPIO не найден — режим эмуляции")
-
-    def set_led(self, mode):
-        if not self.HAS_GPIO: return
-        self.GPIO.output((self.LED_R, self.LED_G, self.LED_B), self.GPIO.LOW)
-        if mode == "LISTEN":
-            self.GPIO.output(self.LED_B, self.GPIO.HIGH)
-        elif mode == "SPEAK":
-            self.GPIO.output(self.LED_G, self.GPIO.HIGH)
-        elif mode == "ERROR":
-            self.GPIO.output(self.LED_R, self.GPIO.HIGH)
-
-
-hw = Hardware()
 
 class LeraBrain:
     def __init__(self, tts_queue):
