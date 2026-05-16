@@ -13,48 +13,21 @@ from num2words import num2words
 from vosk import Model, KaldiRecognizer
 import soundfile as sf
 import subprocess
-
+import onnxruntime as ort
+from piper_onnx import Piper
 
 PIPER_MODEL = "synthModel/mari.onnx"
 PIPER_CONFIG = "synthModel/mari.onnx.json"
-
 API_WEATHER_KEY = "a16151d6d074f7a37a032f50f98a760c"
 CITY = "Novosibirsk"
 NEWS_RSS_URL = "https://lenta.ru/rss/news"
-
 print("Загрузка Vosk...")
 vosk_model = Model("model")
 rec = KaldiRecognizer(vosk_model, 16000)
-
-print("Piper CLI готов")
-
-class Hardware:
-    def __init__(self):
-        self.LED_R, self.LED_G, self.LED_B = 11, 13, 15
-        self.RELAY_LIGHT = 16
-        self.HAS_GPIO = False
-        try:
-            import Jetson.GPIO as GPIO
-            GPIO.setmode(GPIO.BOARD)
-            GPIO.setup([self.LED_R, self.LED_G, self.LED_B, self.RELAY_LIGHT], GPIO.OUT, initial=GPIO.LOW)
-            self.GPIO = GPIO
-            self.HAS_GPIO = True
-            print("Jetson.GPIO инициализирован")
-        except:
-            print("Jetson.GPIO не найден — режим эмуляции")
-
-    def set_led(self, mode):
-        if not self.HAS_GPIO: return
-        self.GPIO.output((self.LED_R, self.LED_G, self.LED_B), self.GPIO.LOW)
-        if mode == "LISTEN":
-            self.GPIO.output(self.LED_B, self.GPIO.HIGH)
-        elif mode == "SPEAK":
-            self.GPIO.output(self.LED_G, self.GPIO.HIGH)
-        elif mode == "ERROR":
-            self.GPIO.output(self.LED_R, self.GPIO.HIGH)
-
-
-hw = Hardware()
+print("Загрузка Piper...")
+ort_session = ort.InferenceSession(PIPER_MODEL, sess_options=ort.SessionOptions(), providers=['CPUExecutionProvider'])
+piper_model = Piper.from_session(ort_session, config_path=PIPER_CONFIG)
+print("Piper готов")
 
 class LeraBrain:
     def __init__(self, tts_queue):
@@ -237,27 +210,12 @@ def synth_and_say(text):
     print(f"Лера говорит: {text}")
 
     try:
-        result = subprocess.run([
-            "piper/piper",
-            "--model", PIPER_MODEL,
-            "--config", PIPER_CONFIG,
-            "--length_scale", "1.1",
-            "--output_file", "temp.wav"
-        ], 
-        input=text.encode('utf-8'), 
-        stdout=subprocess.PIPE, 
-        stderr=subprocess.PIPE)
-
-        if result.returncode != 0:
-            print(f"Piper ошибка: {result.stderr.decode('utf-8', errors='ignore')}")
-            return
-
-        data, sr = sf.read("temp.wav")
-        sd.play(data, sr)
+        # Используем piper-onnx для быстрого синтеза
+        samples, sample_rate = piper_model.create(text, length_scale=0.9)
+        
+        # Воспроизводим напрямую без записи в файл
+        sd.play(samples, sample_rate)
         sd.wait()
-
-        if os.path.exists("temp.wav"):
-            os.remove("temp.wav")
 
     except Exception as e:
         print(f"Ошибка Piper: {e}")
@@ -278,9 +236,9 @@ with sd.RawInputStream(samplerate=16000, blocksize=8000, dtype='int16', channels
         try:
             bg_message = tts_queue.get_nowait()
             stream.stop()
-            hw.set_led("SPEAK")
+            
             synth_and_say(bg_message)
-            hw.set_led("IDLE")
+            
             stream.start()
         except queue.Empty:
             pass
@@ -293,13 +251,13 @@ with sd.RawInputStream(samplerate=16000, blocksize=8000, dtype='int16', channels
 
                 if recognized:
                     print(f"Распознано: {recognized}")
-                    hw.set_led("LISTEN")
+                    
                     response = brain.handle(recognized)
                     if response:
                         stream.stop()
-                        hw.set_led("SPEAK")
+                        
                         synth_and_say(response)
-                        hw.set_led("IDLE")
+                        
                         stream.start()
         except queue.Empty:
             continue
