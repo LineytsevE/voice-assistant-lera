@@ -11,24 +11,55 @@ import re
 import sounddevice as sd
 from num2words import num2words
 from vosk import Model, KaldiRecognizer
-import soundfile as sf
 import subprocess
-import onnxruntime as ort
-from piper_onnx import Piper
 
+# --- НАСТРОЙКИ ---
 PIPER_MODEL = "synthModel/mari.onnx"
 PIPER_CONFIG = "synthModel/mari.onnx.json"
 API_WEATHER_KEY = "a16151d6d074f7a37a032f50f98a760c"
 CITY = "Novosibirsk"
 NEWS_RSS_URL = "https://lenta.ru/rss/news"
+
 print("Загрузка Vosk...")
 vosk_model = Model("model")
 rec = KaldiRecognizer(vosk_model, 16000)
-print("Загрузка Piper...")
-ort_session = ort.InferenceSession(PIPER_MODEL, sess_options=ort.SessionOptions(), providers=['CPUExecutionProvider'])
-piper_model = Piper.from_session(ort_session, config_path=PIPER_CONFIG)
-print("Piper готов")
 
+# --- КЛАСС БЫСТРОГО СИНТЕЗА ---
+class FastPiper:
+    def __init__(self, piper_path="./piper/piper", model_path=PIPER_MODEL, config_path=PIPER_CONFIG):
+        print("⏳ Загрузка модели Piper в оперативную память (один раз)...")
+        
+        # Запускаем piper в фоне в режиме потока
+        self.piper_proc = subprocess.Popen(
+            [
+                piper_path, 
+                "--model", model_path, 
+                "--config", config_path,
+                "--length_scale", "1.1", 
+                "--output_raw"
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL
+        )
+        
+        # Сразу перенаправляем поток аудиоданных в ALSA (aplay)
+        # Параметры aplay (22050 Hz, 16-bit) обычно подходят для большинства onnx моделей Piper
+        self.aplay_proc = subprocess.Popen(
+            ["aplay", "-r", "22050", "-f", "S16_LE", "-t", "raw", "-c", "1", "-q"],
+            stdin=self.piper_proc.stdout,
+            stderr=subprocess.DEVNULL
+        )
+        print("✅ Piper CLI готов к мгновенной работе")
+
+    def speak(self, text):
+        clean_text = text.replace('\n', ' ')
+        # Отправляем текст и символ переноса строки, чтобы начать генерацию
+        self.piper_proc.stdin.write((clean_text + "\n").encode('utf-8'))
+        self.piper_proc.stdin.flush()
+
+
+# --- ЛОГИКА АССИСТЕНТА ---
 class LeraBrain:
     def __init__(self, tts_queue):
         self.name = "лера"
@@ -200,6 +231,8 @@ class LeraBrain:
 
         return "Не поняла команду."
 
+
+# --- ФУНКЦИЯ ВОСПРОИЗВЕДЕНИЯ ---
 def synth_and_say(text):
     if not text:
         return
@@ -210,19 +243,25 @@ def synth_and_say(text):
     print(f"Лера говорит: {text}")
 
     try:
-        # Используем piper-onnx для быстрого синтеза
-        samples, sample_rate = piper_model.create(text, length_scale=0.9)
+        # Отправляем текст в фоновый процесс (мгновенный старт)
+        voice.speak(text)
         
-        # Воспроизводим напрямую без записи в файл
-        sd.play(samples, sample_rate)
-        sd.wait()
+        # Умная пауза: Рассчитываем примерное время звучания (в среднем 12 символов в секунду)
+        # Добавляем 0.5 сек запаса, чтобы микрофон не включился на последнем слове
+        estimated_duration = max(1.0, len(text) / 12.0)
+        time.sleep(estimated_duration + 0.5)
 
     except Exception as e:
         print(f"Ошибка Piper: {e}")
 
+
+# --- ИНИЦИАЛИЗАЦИЯ ---
 data_queue = queue.Queue()
 tts_queue = queue.Queue()
 brain = LeraBrain(tts_queue)
+
+# Запускаем движок Piper
+voice = FastPiper()
 
 threading.Thread(target=brain.background_tasks_checker, daemon=True).start()
 
@@ -231,18 +270,25 @@ def callback(indata, frames, time, status):
 
 print("\nЛера запущена. Говорите 'Лера' для активации.\n")
 
+# --- ГЛАВНЫЙ ЦИКЛ ---
 with sd.RawInputStream(samplerate=16000, blocksize=8000, dtype='int16', channels=1, callback=callback) as stream:
     while True:
+        # 1. Проверяем фоновые сообщения (таймеры/будильники)
         try:
             bg_message = tts_queue.get_nowait()
             stream.stop()
+            try: hw.set_led("SPEAK") 
+            except: pass
             
             synth_and_say(bg_message)
             
+            try: hw.set_led("IDLE")
+            except: pass
             stream.start()
         except queue.Empty:
             pass
 
+        # 2. Слушаем микрофон
         try:
             data = data_queue.get(timeout=0.1)
             if rec.AcceptWaveform(data):
@@ -251,13 +297,19 @@ with sd.RawInputStream(samplerate=16000, blocksize=8000, dtype='int16', channels
 
                 if recognized:
                     print(f"Распознано: {recognized}")
+                    try: hw.set_led("LISTEN")
+                    except: pass
                     
                     response = brain.handle(recognized)
                     if response:
                         stream.stop()
+                        try: hw.set_led("SPEAK")
+                        except: pass
                         
                         synth_and_say(response)
                         
+                        try: hw.set_led("IDLE")
+                        except: pass
                         stream.start()
         except queue.Empty:
             continue
