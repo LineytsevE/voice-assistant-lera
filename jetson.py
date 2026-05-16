@@ -14,7 +14,7 @@ from vosk import Model, KaldiRecognizer
 import soundfile as sf
 import subprocess
 
-# ====================== НАСТРОЙКИ ======================
+
 PIPER_MODEL = "synthModel/mari.onnx"
 PIPER_CONFIG = "synthModel/mari.onnx.json"
 
@@ -22,14 +22,12 @@ API_WEATHER_KEY = "a16151d6d074f7a37a032f50f98a760c"
 CITY = "Novosibirsk"
 NEWS_RSS_URL = "https://lenta.ru/rss/news"
 
-# ====================== ИНИЦИАЛИЗАЦИЯ ======================
 print("Загрузка Vosk...")
 vosk_model = Model("model")
 rec = KaldiRecognizer(vosk_model, 16000)
 
 print("Piper CLI готов")
 
-# ====================== HARDWARE ======================
 class Hardware:
     def __init__(self):
         self.LED_R, self.LED_G, self.LED_B = 11, 13, 15
@@ -58,8 +56,6 @@ class Hardware:
 
 hw = Hardware()
 
-
-# ====================== МОЗГ ======================
 class LeraBrain:
     def __init__(self, tts_queue):
         self.name = "лера"
@@ -231,8 +227,6 @@ class LeraBrain:
 
         return "Не поняла команду."
 
-
-# ====================== СИНТЕЗ ======================
 def synth_and_say(text):
     if not text:
         return
@@ -268,8 +262,6 @@ def synth_and_say(text):
     except Exception as e:
         print(f"Ошибка Piper: {e}")
 
-
-# ====================== ЗАПУСК ======================
 data_queue = queue.Queue()
 tts_queue = queue.Queue()
 brain = LeraBrain(tts_queue)
