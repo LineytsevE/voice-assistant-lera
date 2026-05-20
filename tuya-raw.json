@@ -1,16 +1,16 @@
 {
     "result": [
         {
-            "active_time": 1779279242,
+            "active_time": 1779291674,
             "biz_type": 0,
             "category": "cz",
-            "create_time": 1779276747,
+            "create_time": 1779291674,
             "icon": "smart/icon/bay1623746249826F25U/b03fa3f24daf2c6de5a02e9ee573e6c6.png",
-            "id": "bf70a38629ee62797fw0gl",
+            "id": "bf8f380f2898553652rjvf",
             "ip": "92.127.182.223",
-            "lat": "54.85",
-            "local_key": "N3E]/2/xet>l`wSt",
-            "lon": "83.05",
+            "lat": "0",
+            "local_key": "#PF*m3=>f>}cKh`}",
+            "lon": "0",
             "model": "",
             "name": "Wi-Fi Socket",
             "online": true,
@@ -40,7 +40,7 @@
                 },
                 {
                     "code": "cur_voltage",
-                    "value": 2365
+                    "value": 2370
                 },
                 {
                     "code": "voltage_coe",
@@ -90,7 +90,7 @@
             "sub": false,
             "time_zone": "+07:00",
             "uid": "eu1779278269749ACjUA",
-            "update_time": 1779281790,
+            "update_time": 1779291675,
             "uuid": "b7184a74fc2089fd",
             "mapping": {
                 "1": {
@@ -252,13 +252,13 @@
         }
     ],
     "success": true,
-    "t": 1779288821496,
-    "tid": "b10c888b545b11f18f256e9984e9d316",
+    "t": 1779292287953,
+    "tid": "c3363b45546311f18842d6e3b32c8acf",
     "file": {
         "name": "tuya-raw.json",
         "description": "Full raw list of Tuya devices.",
         "account": "8yhdwft5ngemy94r9vjp",
-        "date": "2026-05-20T21:53:42.297151",
+        "date": "2026-05-20T22:51:28.730666",
         "tinytuya": "1.18.0"
     }
 }

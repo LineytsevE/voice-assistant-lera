@@ -24,9 +24,9 @@ print("Загрузка Vosk...")
 vosk_model = Model("model")
 rec = KaldiRecognizer(vosk_model, 16000)
 
-TUYA_DEVICE_ID = 'bf70a38629ee62797fw0gl'
+TUYA_DEVICE_ID = 'bf8f380f2898553652rjvf'
 TUYA_IP ='192.168.0.12'
-TUYA_LOCAL_KEY = r"""N3E]/2/xet>l`wSt"""
+TUYA_LOCAL_KEY = r"""bf8f380f2898553652rjvf"""
 TUYA_VERSION = 3.4
 
 # --- КЛАСС БЫСТРОГО СИНТЕЗА ---

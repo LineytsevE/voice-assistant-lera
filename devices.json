@@ -1,8 +1,8 @@
 [
     {
         "name": "Wi-Fi Socket",
-        "id": "bf70a38629ee62797fw0gl",
-        "key": "N3E]/2/xet>l`wSt",
+        "id": "bf8f380f2898553652rjvf",
+        "key": "#PF*m3=>f>}cKh`}",
         "mac": "e4:ae:e4:90:a3:37",
         "uuid": "b7184a74fc2089fd",
         "sn": "10023560600506",
@@ -169,6 +169,8 @@
                 "type": "String",
                 "values": "{}"
             }
-        }
+        },
+        "ip": "192.168.0.12",
+        "version": "3.5"
     }
 ]
