@@ -12,6 +12,7 @@ import sounddevice as sd
 from num2words import num2words
 from vosk import Model, KaldiRecognizer
 import subprocess
+import tinytuya
 
 # --- НАСТРОЙКИ ---
 PIPER_MODEL = "synthModel/mari.onnx"
@@ -19,10 +20,14 @@ PIPER_CONFIG = "synthModel/mari.onnx.json"
 API_WEATHER_KEY = "a16151d6d074f7a37a032f50f98a760c"
 CITY = "Novosibirsk"
 NEWS_RSS_URL = "https://lenta.ru/rss/news"
-
 print("Загрузка Vosk...")
 vosk_model = Model("model")
 rec = KaldiRecognizer(vosk_model, 16000)
+
+TUYA_DEVICE_ID = 'bf70a38629ee62797fw0gl'
+TUYA_IP ='192.168.0.12'
+TUYA_LOCAL_KEY = 'N3E]/2/xet>l`wSt'
+TUYA_VERSION = 3.3
 
 # --- КЛАСС БЫСТРОГО СИНТЕЗА ---
 class FastPiper:
@@ -67,6 +72,16 @@ class LeraBrain:
         self.alarms = []
         self.timers = {}
         self.listening_mode = False
+
+        print("tuya init...")
+        try:
+            self.plug = tinytuya.OutletDevice(TUYA_DEVICE_ID, TUYA_IP, TUYA_LOCAL_KEY)
+            self.plug.set_version(TUYA_VERSION)
+            self.plug.set_socketTimeout(2)
+            print("Tuya ready")
+        except Exception as e:
+            print(f"error init tuya: {e}")
+            self.plug = None
 
     def declension(self, n, one, two, five):
         n = abs(n) % 100
@@ -226,9 +241,22 @@ class LeraBrain:
                 return self.set_alarm(time_str)
 
         if any(w in text for w in ["свет", "ламп", "розетк"]):
-            if "включи" in text: return "Свет включён."
-            if "выключи" in text: return "Свет выключен."
-
+            if not self.plug:
+                return "Module ne nastroen"
+            if "включи" in text:
+                try:
+                    self.plug.turn_on()
+                    return "свет включен"
+                except Exception as e:
+                    print(f"error tuya {e}")
+                    return "no connection with device"
+            if "выключи" in text:
+                try:
+                    self.plug.turn_off()
+                    return "Свет выключен"
+                except Exception as e:
+                    print(f"error tuya {e}")
+                    return "no connection with device"
         return "Не поняла команду."
 
 
