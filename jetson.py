@@ -242,21 +242,33 @@ class LeraBrain:
 
         if any(w in text for w in ["свет", "ламп", "розетк"]):
             if not self.plug:
-                return "Module ne nastroen"
+                return "Модуль управления розеткой не настроен."
+            
             if "включи" in text:
                 try:
-                    self.plug.turn_on()
+                    # Отправляем команду и требуем подтверждения от розетки
+                    data = self.plug.turn_on(nowait=False)
+                    print(f"[Tuya Debug] Ответ розетки: {data}") # Увидим в терминале, что пошло не так
+                    
+                    if data and 'Error' in data:
+                        return "Ошибка отправки команды на розетку."
                     return "свет включен"
                 except Exception as e:
                     print(f"error tuya {e}")
-                    return "no connection with device"
+                    return "нет связи с устройством"
+                    
             if "выключи" in text:
                 try:
-                    self.plug.turn_off()
+                    # Отправляем команду и требуем подтверждения от розетки
+                    data = self.plug.turn_off(nowait=False)
+                    print(f"[Tuya Debug] Ответ розетки: {data}")
+                    
+                    if data and 'Error' in data:
+                        return "Ошибка отправки команды на розетку."
                     return "Свет выключен"
                 except Exception as e:
                     print(f"error tuya {e}")
-                    return "no connection with device"
+                    return "нет связи с устройством"
         return "Не поняла команду."
 
 
