@@ -21,7 +21,7 @@ except Exception as e:
     exit()
 
 # 2. Перебираем версии протокола с чистым ключом
-target_ip = '192.168.0.12'
+target_ip = '192.168.0.20'
 
 for version in [3.4, 3.3, 3.5]:
     print(f"--- Тестируем версию протокола {version} ---")

@@ -16,9 +16,9 @@ CITY = "Novosibirsk"
 NEWS_RSS_URL = "https://lenta.ru/rss/news"
 
 # Настройки Tuya (умная розетка)
-TUYA_DEVICE_ID = 'bf8f380f2898553652rjvf'
-TUYA_IP = '192.168.0.12'
-TUYA_LOCAL_KEY = r"""#PF*m3=>f>}cKh`}"""
+TUYA_DEVICE_ID = 'bf92458fb773b88fcdl2vp'
+TUYA_IP = '192.168.0.20'
+TUYA_LOCAL_KEY = r"""Jlxs3u)e>Z-n:dNe"""
 TUYA_VERSION = 3.5
 TUYA_TIMEOUT = 2
 

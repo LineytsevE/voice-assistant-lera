@@ -1,0 +1,264 @@
+{
+    "result": [
+        {
+            "active_time": 1779904609,
+            "biz_type": 0,
+            "category": "cz",
+            "create_time": 1779904609,
+            "icon": "smart/icon/bay1623746249826F25U/b03fa3f24daf2c6de5a02e9ee573e6c6.png",
+            "id": "bf92458fb773b88fcdl2vp",
+            "ip": "90.189.236.122",
+            "lat": "54.85",
+            "local_key": "Jlxs3u)e>Z-n:dNe",
+            "lon": "83.05",
+            "model": "",
+            "name": "Wi-Fi Socket",
+            "online": true,
+            "owner_id": "289677737",
+            "product_id": "zafzbkuyr9ybu0sp",
+            "product_name": "Wi-Fi Socket",
+            "status": [
+                {
+                    "code": "switch_1",
+                    "value": false
+                },
+                {
+                    "code": "countdown_1",
+                    "value": 0
+                },
+                {
+                    "code": "add_ele",
+                    "value": 0
+                },
+                {
+                    "code": "cur_current",
+                    "value": 0
+                },
+                {
+                    "code": "cur_power",
+                    "value": 0
+                },
+                {
+                    "code": "cur_voltage",
+                    "value": 2357
+                },
+                {
+                    "code": "voltage_coe",
+                    "value": 599
+                },
+                {
+                    "code": "electric_coe",
+                    "value": 28251
+                },
+                {
+                    "code": "power_coe",
+                    "value": 16337
+                },
+                {
+                    "code": "electricity_coe",
+                    "value": 2540
+                },
+                {
+                    "code": "fault",
+                    "value": 0
+                },
+                {
+                    "code": "relay_status",
+                    "value": "last"
+                },
+                {
+                    "code": "light_mode",
+                    "value": "relay"
+                },
+                {
+                    "code": "child_lock",
+                    "value": false
+                },
+                {
+                    "code": "cycle_time",
+                    "value": ""
+                },
+                {
+                    "code": "random_time",
+                    "value": ""
+                },
+                {
+                    "code": "switch_inching",
+                    "value": ""
+                }
+            ],
+            "sub": false,
+            "time_zone": "+07:00",
+            "uid": "eu1779278269749ACjUA",
+            "update_time": 1779904610,
+            "uuid": "b7184a74fc2089fd",
+            "mapping": {
+                "1": {
+                    "code": "switch_1",
+                    "type": "Boolean",
+                    "values": {}
+                },
+                "9": {
+                    "code": "countdown_1",
+                    "type": "Integer",
+                    "values": {
+                        "unit": "s",
+                        "min": 0,
+                        "max": 86400,
+                        "scale": 0,
+                        "step": 1
+                    }
+                },
+                "17": {
+                    "code": "add_ele",
+                    "type": "Integer",
+                    "values": {
+                        "min": 0,
+                        "max": 50000,
+                        "scale": 3,
+                        "step": 100
+                    }
+                },
+                "18": {
+                    "code": "cur_current",
+                    "type": "Integer",
+                    "values": {
+                        "unit": "mA",
+                        "min": 0,
+                        "max": 30000,
+                        "scale": 0,
+                        "step": 1
+                    }
+                },
+                "19": {
+                    "code": "cur_power",
+                    "type": "Integer",
+                    "values": {
+                        "unit": "W",
+                        "min": 0,
+                        "max": 80000,
+                        "scale": 1,
+                        "step": 1
+                    }
+                },
+                "20": {
+                    "code": "cur_voltage",
+                    "type": "Integer",
+                    "values": {
+                        "unit": "V",
+                        "min": 0,
+                        "max": 5000,
+                        "scale": 1,
+                        "step": 1
+                    }
+                },
+                "22": {
+                    "code": "voltage_coe",
+                    "type": "Integer",
+                    "values": {
+                        "min": 0,
+                        "max": 1000000,
+                        "scale": 0,
+                        "step": 1
+                    }
+                },
+                "23": {
+                    "code": "electric_coe",
+                    "type": "Integer",
+                    "values": {
+                        "min": 0,
+                        "max": 1000000,
+                        "scale": 0,
+                        "step": 1
+                    }
+                },
+                "24": {
+                    "code": "power_coe",
+                    "type": "Integer",
+                    "values": {
+                        "min": 0,
+                        "max": 1000000,
+                        "scale": 0,
+                        "step": 1
+                    }
+                },
+                "25": {
+                    "code": "electricity_coe",
+                    "type": "Integer",
+                    "values": {
+                        "min": 0,
+                        "max": 1000000,
+                        "scale": 0,
+                        "step": 1
+                    }
+                },
+                "26": {
+                    "code": "fault",
+                    "type": "Bitmap",
+                    "values": {
+                        "label": [
+                            "ov_cr",
+                            "ov_vol",
+                            "ov_pwr",
+                            "ls_cr",
+                            "ls_vol",
+                            "ls_pow"
+                        ]
+                    }
+                },
+                "38": {
+                    "code": "relay_status",
+                    "type": "Enum",
+                    "values": {
+                        "range": [
+                            "power_off",
+                            "power_on",
+                            "last"
+                        ]
+                    }
+                },
+                "40": {
+                    "code": "light_mode",
+                    "type": "Enum",
+                    "values": {
+                        "range": [
+                            "relay",
+                            "pos",
+                            "none"
+                        ]
+                    }
+                },
+                "41": {
+                    "code": "child_lock",
+                    "type": "Boolean",
+                    "values": {}
+                },
+                "42": {
+                    "code": "cycle_time",
+                    "type": "String",
+                    "values": "{}"
+                },
+                "43": {
+                    "code": "random_time",
+                    "type": "String",
+                    "values": "{}"
+                },
+                "44": {
+                    "code": "switch_inching",
+                    "type": "String",
+                    "values": "{}"
+                }
+            }
+        }
+    ],
+    "success": true,
+    "t": 1779904749902,
+    "tid": "c2e1231e59f511f1bcf56a64b78218be",
+    "file": {
+        "name": "tuya-raw.json",
+        "description": "Full raw list of Tuya devices.",
+        "account": "8yhdwft5ngemy94r9vjp",
+        "date": "2026-05-28T00:59:10.733480",
+        "tinytuya": "1.18.0"
+    }
+}
