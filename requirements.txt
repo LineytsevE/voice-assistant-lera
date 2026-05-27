@@ -1,10 +1,21 @@
-# Python 3.8 dependencies for voice-assistant-lera
-requests>=2.28.0
-feedparser>=6.0.10
-sounddevice>=0.4.6
-soundfile>=0.12.1
-num2words>=0.5.12
-piper-onnx>=1.2.0
-onnxruntime>=1.14.0
-vosk
-Jetson.GPIO>=2.0.17
+# Зависимости для голосового ассистента Лера
+# Совместимо с Python 3.6-3.8 (Jetson Nano 2GB, JetPack 4, Ubuntu 18.04)
+
+# Общие
+requests==2.28.0
+feedparser==6.0.10
+
+# Обработка чисел
+num2words==0.5.12
+
+# Tuya IoT
+tinytuya==1.2.9
+
+# Аудио
+sounddevice==0.4.6
+
+# Vosk STT (устанавливается через pip)
+vosk==0.3.45
+
+# Примечание: Piper TTS устанавливается отдельно через бинарные файлы
+# См. документацию: https://github.com/rhasspy/piper
